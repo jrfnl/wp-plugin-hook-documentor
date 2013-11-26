@@ -23,7 +23,7 @@
 include_once( 'include/jrfdebug.inc.php' );
 
 
-if ( !class_exists( 'wp_hook_documentor_frontend' ) ) {
+if ( ! class_exists( 'wp_hook_documentor_frontend' ) ) {
 
 	include( 'class.wp-hook-documentor.php' );
 
@@ -46,7 +46,9 @@ if ( !class_exists( 'wp_hook_documentor_frontend' ) ) {
         function __construct() {
 
 			if( isset( $_POST ) && ( is_array( $_POST ) && count( $_POST ) > 0 ) ) {
-if( self::DEV ) { pr_var( $_POST, '$_POST', true ); }
+				if( self::DEV ) {
+					pr_var( $_POST, '$_POST', true );
+				}
 				$source = ( isset( $_POST['wpd-source'] ) ? $_POST['wpd-source'] : null );
 //				$hierarchical = ( isset( $_POST['wpd-hierarchical'] ) && $_POST['wpd-hierarchical'] === '1' ? true : false );
 				$sort_by = ( isset( $_POST['wpd-sort-by'] ) ? $_POST['wpd-sort-by'] : null );
@@ -73,21 +75,21 @@ if( self::DEV ) { pr_var( $_POST, '$_POST', true ); }
          */
         function print_page( $fullpage = true ) {
 
-			if( $fullpage === true ) {
+			if ( $fullpage === true ) {
 				echo $this->print_html_head();
 			}
 
 			echo $this->show_form();
 
-			if( $this->is_post === true ) {
+			if ( $this->is_post === true ) {
 				echo $this->show_hooks();
 			}
 
-			if( $this->show_docs === true ) {
+			if ( $this->show_docs === true ) {
 				echo $this->show_documentation();
 			}
 
-			if( $fullpage === true ) {
+			if ( $fullpage === true ) {
 				echo $this->print_html_footer();
 			}
 		}
@@ -96,106 +98,84 @@ if( self::DEV ) { pr_var( $_POST, '$_POST', true ); }
 		 * HTML head for this front-end page
 		 * @todo Make this nice & tidy html code ;-)
 		 */
-		function print_html_head() {
-			return '<html>
-<head>
-	<title></title>
-	<link rel="stylesheet" href="css/style.css" />
-</head>
-<body id="wpd">
-';
+		function print_html_head() { ?>
+			<html>
+				<head>
+					<title></title>
+					<link rel="stylesheet" href="css/style.css" />
+				</head>
+				<body id="wpd">
+		<?php
 		}
 
 		/**
 		 * HTML footer for this front-end page
 		 */
-		function print_html_footer() {
-			return '
-</body>
-</html>';
+		function print_html_footer() { ?>
+				</body> <!-- body -->
+			</html>
+		<?php
 		}
 
 
         /**
          * Generate the HTML form for the frontend
          *
-         * @return string
+         * @return string <?php ?>
          */
-        function show_form() {
-			$html = '
-	<form method="post" id="wpd-form" enctype="multipart/form-data" accept-charset="utf-8">
-		<fieldset>
-		<div>
-			<label for="wpd-source">Please provide the source location:
-				<input id="wpd-source" name="wpd-source" type="text" value="' . ( $this->source !== '' ? $this->source : $this->default_source ) . '" />
-			</label>
-		</div>';
+        function show_form() { ?>
+			<form method="post" id="wpd-form" enctype="multipart/form-data" accept-charset="utf-8">
+				<fieldset>
+					<div>
+						<label for="wpd-source">Please provide the source location:
+							<input id="wpd-source" name="wpd-source" type="text" value="<?php echo ( $this->source !== '' ? $this->source : $this->default_source ); ?>" />
+						</label>
+					</div>
 		
+					<?php
+					if ( count( $this->sort_options ) > 1 ) { ?>
+						<div class="wpd-column">
+							<p>How would you like the hooks to be sorted ?</p>
+							<?php foreach( $this->sort_options as $key => $sort_by ) { ?>
+							<label for="wpd-sort-by-<?php echo $key; ?>">
+								<input id="wpd-sort-by-<?php echo $key; ?>" name="wpd-sort-by" type="radio" value="<?php echo $key; ?>" <?php echo ( $key === $this->sort_by ? 'checked="checked"' : '' ) ?> />
+								<?php echo $sort_by; ?>
+							</label><br />
+							<?php } ?>
+						</div>
+					<?php }
 
-		if( count( $this->sort_options ) > 1 ) {
-			$html .= '
-		<div class="wpd-column">
-			<p>How would you like the hooks to be sorted ?</p>';
+					if ( count( $this->styles ) > 1 ) { ?>
+						<div class="wpd-column">
+							<p>In which style would you like to receive the output ?</p>
+							<?php foreach( $this->styles as $key => $style ) { ?>
+							<label for="wpd-style-<?php echo $key; ?>">
+								<input id="wpd-style-<?php echo $key; ?>" name="wpd-style" type="radio" value="<?php echo $key; ?>" <?php echo ( $key === $this->style ? 'checked="checked"' : '' ) ?> />
+								<?php echo $style; ?>
+							</label><br />
+							<?php } ?>
+						</div>
+					<?php }
 
+					if( count( $this->formats ) > 1 ) { ?>
+						<div class="wpd-column">
+							<p>In which format would you like to received the output ?</p>
+							<?php foreach( $this->formats as $key => $format ) { ?>
+								<label for="wpd-format-<?php echo $key; ?>">
+									<input id="wpd-format-<?php echo $key; ?>" name="wpd-format" type="radio" value="<?php echo $key; ?>" <?php echo ( $key === $this->format ? 'checked="checked"' : '' ) ?> />
+									<?php echo $format; ?>
+								</label><br />
+							<?php } ?>
+						</div>
+					<?php } ?>
 
-			foreach( $this->sort_options as $key => $sort_by ) {
-				$html .= '
-			<label for="wpd-sort-by-' . $key . '">
-				<input id="wpd-sort-by-' . $key . '" name="wpd-sort-by" type="radio" value="' . $key . '" ' . ( $key === $this->sort_by ? 'checked="checked"' : '' ) . '" />
-				' . $sort_by . '
-			</label><br />';
-			}
+					<div class="wpd-row">
+						 <input type="submit" id="wpd-submit" value="Submit" />
+					</div>
+				</fieldset>
+			</form>
 
-			$html .= '
-		</div>';
-		}
-
-		if( count( $this->styles ) > 1 ) {
-			$html .= '
-		<div class="wpd-column">
-			<p>In which style would you like to receive the output ?</p>';
-
-			foreach( $this->styles as $key => $style ) {
-				$html .= '
-			<label for="wpd-style-' . $key . '">
-				<input id="wpd-style-' . $key . '" name="wpd-style" type="radio" value="' . $key . '" ' . ( $key === $this->style ? 'checked="checked"' : '' ) . '" />
-				' . $style . '
-			</label><br />';
-			}
-
-			$html .= '
-		</div>';
-		}
-
-
-		if( count( $this->formats ) > 1 ) {
-			$html .= '
-		<div class="wpd-column">
-			<p>In which format would you like to received the output ?</p>';
-
-			foreach( $this->formats as $key => $format ) {
-				$html .= '
-			<label for="wpd-format-' . $key . '">
-				<input id="wpd-format-' . $key . '" name="wpd-format" type="radio" value="' . $key . '" ' . ( $key === $this->format ? 'checked="checked"' : '' ) . '" />
-				' . $format . '
-			</label><br />';
-			}
-
-			$html .= '
-		</div>';
-		}
-		
-		$html .= '
-		<div class="wpd-row">
-			 <input type="submit" id="wpd-submit" value="Submit" />
-		</div>
-		</fieldset>
-
-	</form>
-			';
-
-			return $html;
-		}
+		<?php }
 
 
         /**
